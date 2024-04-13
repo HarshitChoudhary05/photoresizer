@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image Resizer</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f2f2f2;
+      margin: 0;
+      padding: 0;
+    }
+
+    nav {
+      background-color: #333;
+      color: white;
+      padding: 10px 20px;
+    }
+
+    nav h1 {
+      margin: 0;
+    }
+
+    #container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 20px;
+    }
+
+    #imageContainer {
+      margin-bottom: 20px;
+      text-align: center; /* Center align on mobile */
+    }
+
+    #preview img,
+    #croppedImage canvas {
+      max-width: 100%;
+      height: auto;
+      width: 100%;
+      border-radius: 5px; /* Add border radius for rounded corners */
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Add shadow for depth */
+    }
+
+    #cropControls {
+      margin-bottom: 20px;
+      text-align: center; /* Center align on mobile */
+    }
+
+    #resultContainer {
+      background-color: white;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      text-align: center; /* Center align on mobile */
+    }
+
+    input[type="number"],
+    select,
+    button {
+      padding: 8px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      width: 100%; /* Full width on mobile */
+    }
+
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.3s; /* Smooth transition on hover */
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    @media only screen and (min-width: 600px) {
+      #container {
+        flex-direction: row;
+      }
+      #imageContainer {
+        margin-right: 20px;
+        width: 50%; /* Adjust width for larger screens */
+        text-align: left; /* Align left on larger screens */
+      }
+      #cropControls {
+        width: 50%; /* Adjust width for larger screens */
+        text-align: left; /* Align left on larger screens */
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <h1>Image Resizer</h1>
+  </nav>
+  
+  <div id="container">
+    <div id="imageContainer">
+      <input type="file" accept="image/*" id="imageInput">
+      <div id="preview"></div>
+    </div>
+    <div id="cropControls">
+      <label for="width">Width:</label>
+      <input type="number" id="width" value="100">
+      <select id="unit">
+        <option value="px">Pixels</option>
+        <option value="cm">Centimeters</option>
+        <option value="in">Inches</option>
+      </select>
+      <label for="height">Height:</label>
+      <input type="number" id="height" value="100">
+      <button onclick="cropImage()">Resize</button>
+    </div>
+  </div>
+
+  <div id="resultContainer">
+    <h2>Result</h2>
+    <div id="croppedImage"></div>
+    <button id="downloadButton" style="display:none;">Download</button>
+  </div>
+
+  <script>
+    document.getElementById('imageInput').addEventListener('change', function(event) {
+      var file = event.target.files[0];
+      var reader = new FileReader();
+      reader.onload = function(event) {
+        var img = new Image();
+        img.onload = function() {
+          var preview = document.getElementById('preview');
+          preview.innerHTML = '';
+          preview.appendChild(img);
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    function cropImage() {
+      var img = document.getElementById('preview').querySelector('img');
+      var width = document.getElementById('width').value;
+      var height = document.getElementById('height').value;
+      var unit = document.getElementById('unit').value;
+
+      // Convert width and height to pixels
+      if (unit === 'cm') {
+        width = width * 37.7953; // 1 cm = 37.7953 pixels
+        height = height * 37.7953;
+      }
+      if (unit === 'in') {
+        width = width * 96; // 1 inch = 96 pixels
+        height = height * 96;
+      }
+
+      var canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      var ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+
+      var croppedImage = document.getElementById('croppedImage');
+      croppedImage.innerHTML = '';
+      croppedImage.appendChild(canvas);
+
+      var downloadButton = document.getElementById('downloadButton');
+      downloadButton.style.display = 'block';
+      downloadButton.onclick = function() {
+        var downloadLink = document.createElement('a');
+        downloadLink.href = canvas.toDataURL();
+        downloadLink.download = 'resized_image.png';
+        downloadLink.click();
+      };
+    }
+  </script>
+</body>
+</html>
